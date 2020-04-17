@@ -1,4 +1,4 @@
-package com.nerdytech.noteit;
+package com.nerdytech.noteit.note;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +19,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.nerdytech.noteit.MainActivity;
+import com.nerdytech.noteit.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,7 +73,7 @@ public class EditNote extends AppCompatActivity {
 
                 // save note
 
-                DocumentReference docref = fStore.collection("notes").document(data.getStringExtra("noteId"));
+                DocumentReference docref = fStore.collection("notes").document(user.getUid()).collection("myNotes").document(data.getStringExtra("noteId"));
 
                 Map<String,Object> note = new HashMap<>();
                 note.put("title",nTitle);
@@ -81,7 +83,7 @@ public class EditNote extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Toast.makeText(EditNote.this, "Note Saved.", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                        startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
 
                     }
                 }).addOnFailureListener(new OnFailureListener() {

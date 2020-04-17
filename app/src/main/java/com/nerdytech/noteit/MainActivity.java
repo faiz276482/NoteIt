@@ -1,5 +1,6 @@
 package com.nerdytech.noteit;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -15,10 +16,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -34,8 +37,12 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
-import com.nerdytech.noteit.model.Adapter;
+import com.nerdytech.noteit.auth.LoginActivity;
+import com.nerdytech.noteit.auth.RegisterActivity;
 import com.nerdytech.noteit.model.Note;
+import com.nerdytech.noteit.note.AddNote;
+import com.nerdytech.noteit.note.EditNote;
+import com.nerdytech.noteit.note.NoteDetails;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ActionBarDrawerToggle toggle;
     NavigationView nav_view;
     RecyclerView noteLists;
-
     FirebaseFirestore fStore;
     FirestoreRecyclerAdapter<Note,NoteViewHolder> noteAdapter;
     FirebaseUser user;
@@ -58,48 +64,56 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        fStore=FirebaseFirestore.getInstance();
 
-        Query query = fStore.collection("notes").orderBy("title", Query.Direction.DESCENDING);
+        fStore = FirebaseFirestore.getInstance();
+        fAuth = FirebaseAuth.getInstance();
+        user = fAuth.getCurrentUser();
+
+
+        Query query = fStore.collection("notes").document(user.getUid()).collection("myNotes").orderBy("title", Query.Direction.DESCENDING);
+        // query notes > uuid > mynotes
 
         FirestoreRecyclerOptions<Note> allNotes = new FirestoreRecyclerOptions.Builder<Note>()
                 .setQuery(query,Note.class)
                 .build();
 
-        noteAdapter=new FirestoreRecyclerAdapter<Note, NoteViewHolder>(allNotes) {
-            @Override
-            protected void onBindViewHolder(@NonNull NoteViewHolder holder, final int position, @NonNull final Note model) {
-                holder.noteTitle.setText(model.getTitle());
-                holder.noteContent.setText(model.getContent());
-                final int code = getRandomColor();
-                holder.mCardView.setCardBackgroundColor(holder.view.getResources().getColor(code,null));
-                final String docId = noteAdapter.getSnapshots().getSnapshot(position).getId();
 
-                holder.view.setOnClickListener(new View.OnClickListener() {
+        noteAdapter = new FirestoreRecyclerAdapter<Note, NoteViewHolder>(allNotes) {
+            @Override
+            protected void onBindViewHolder(@NonNull NoteViewHolder noteViewHolder, final int i, @NonNull final Note note) {
+                noteViewHolder.noteTitle.setText(note.getTitle());
+                noteViewHolder.noteContent.setText(note.getContent());
+                final int code = getRandomColor();
+                noteViewHolder.mCardView.setCardBackgroundColor(noteViewHolder.view.getResources().getColor(code,null));
+                final String docId = noteAdapter.getSnapshots().getSnapshot(i).getId();
+
+                noteViewHolder.view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent i = new Intent(v.getContext(), NoteDetails.class);
-                        i.putExtra("title",model.getTitle());
-                        i.putExtra("content",model.getContent());
+                        Intent i = new Intent(v.getContext(), NoteDetails.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        i.putExtra("title",note.getTitle());
+                        i.putExtra("content",note.getContent());
                         i.putExtra("code",code);
                         i.putExtra("noteId",docId);
                         v.getContext().startActivity(i);
                     }
                 });
 
-                ImageView menuIcon=holder.view.findViewById(R.id.menuIcon);
+                ImageView menuIcon = noteViewHolder.view.findViewById(R.id.menuIcon);
                 menuIcon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View v) {
-                        final String docId = noteAdapter.getSnapshots().getSnapshot(position).getId();
+                        final String docId = noteAdapter.getSnapshots().getSnapshot(i).getId();
                         PopupMenu menu = new PopupMenu(v.getContext(),v);
                         menu.setGravity(Gravity.END);
                         menu.getMenu().add("Edit").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                Intent i = new Intent(v.getContext(), EditNote.class);
-                                i.putExtra("title",model.getTitle());
-                                i.putExtra("content",model.getContent());
+                                Intent i = new Intent(v.getContext(), EditNote.class)
+                                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                i.putExtra("title",note.getTitle());
+                                i.putExtra("content",note.getContent());
                                 i.putExtra("noteId",docId);
                                 startActivity(i);
                                 return false;
@@ -109,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         menu.getMenu().add("Delete").setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem item) {
-                                DocumentReference docRef = fStore.collection("notes").document(docId);
+                                DocumentReference docRef = fStore.collection("notes").document(user.getUid()).collection("myNotes").document(docId);
                                 docRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
@@ -125,17 +139,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                         });
 
-
                         menu.show();
 
                     }
                 });
+
+
+
             }
 
             @NonNull
             @Override
             public NoteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.note_view_layout,parent,false);
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.note_view_layout,parent,false);
                 return new NoteViewHolder(view);
             }
         };
@@ -143,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         noteLists = findViewById(R.id.noteList);
-
         drawerLayout = findViewById(R.id.drawer);
         nav_view = findViewById(R.id.nav_view);
         nav_view.setNavigationItemSelectedListener(this);
@@ -153,15 +168,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.setDrawerIndicatorEnabled(true);
         toggle.syncState();
 
-
         noteLists.setLayoutManager(new StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL));
         noteLists.setAdapter(noteAdapter);
+
+        View headerView = nav_view.getHeaderView(0);
+        TextView username = headerView.findViewById(R.id.userDisplayName);
+        TextView userEmail = headerView.findViewById(R.id.userDisplayEmail);
+
+        if(user.isAnonymous()){
+            userEmail.setVisibility(View.GONE);
+            username.setText("Temporary User");
+        }else {
+            userEmail.setText(user.getEmail());
+            username.setText(user.getDisplayName());
+        }
+
+
 
         FloatingActionButton fab = findViewById(R.id.addNoteFloat);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,AddNote.class));
+                startActivity(new Intent(view.getContext(), AddNote.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+                finish();
             }
         });
 
@@ -169,30 +200,87 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        drawerLayout.closeDrawer(GravityCompat.START);
         switch(item.getItemId()){
             case R.id.addNote:
-                startActivity(new Intent(MainActivity.this,AddNote.class));
+                startActivity(new Intent(this,AddNote.class));
+                overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
                 break;
+
+            case R.id.sync:
+                if(user.isAnonymous()){
+                    startActivity(new Intent(this, LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                    overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+                }else {
+                    Toast.makeText(this, "Your Are Connected.", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.logout:
+                checkUser();
+                break;
+
             default:
                 Toast.makeText(this, "Coming soon.", Toast.LENGTH_SHORT).show();
         }
         return false;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.option_menu,menu);
-        return super.onCreateOptionsMenu(menu);
+    private void checkUser() {
+        // if user is real or not
+        if(user.isAnonymous()){
+            displayAlert();
+        }else {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(new Intent(getApplicationContext(),Splash.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+        }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == R.id.settings){
-            Toast.makeText(this, "Settings Menu is Clicked.", Toast.LENGTH_SHORT).show();
-        }
-        return super.onOptionsItemSelected(item);
+    private void displayAlert() {
+        AlertDialog.Builder warning = new AlertDialog.Builder(this)
+                .setTitle("Are you sure ?")
+                .setMessage("You are logged in with Temporary Account. Logging out will Delete All the notes.")
+                .setPositiveButton("Sync Note", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(getApplicationContext(),RegisterActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+//                        finish();
+                    }
+                }).setNegativeButton("Logout", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // ToDO: delete all the notes created by the Anon user
+
+                        // TODO: delete the anon user
+
+                        user.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                startActivity(new Intent(getApplicationContext(),Splash.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                                overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+                            }
+                        });
+                    }
+                });
+
+        warning.show();
     }
+//
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.option_menu,menu);
+//        return super.onCreateOptionsMenu(menu);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+//        if(item.getItemId() == R.id.settings){
+//            Toast.makeText(this, "Settings Menu is Clicked.", Toast.LENGTH_SHORT).show();
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     public class NoteViewHolder extends RecyclerView.ViewHolder{
         TextView noteTitle,noteContent;
@@ -210,7 +298,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private int getRandomColor() {
-        List<Integer> colorCode=new ArrayList<>();
+
+        List<Integer> colorCode = new ArrayList<>();
         colorCode.add(R.color.blue);
         colorCode.add(R.color.yellow);
         colorCode.add(R.color.skyblue);
@@ -225,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Random randomColor = new Random();
         int number = randomColor.nextInt(colorCode.size());
         return colorCode.get(number);
+
     }
 
     @Override
@@ -240,4 +330,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             noteAdapter.stopListening();
         }
     }
+
 }

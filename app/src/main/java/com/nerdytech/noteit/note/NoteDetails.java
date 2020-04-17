@@ -1,10 +1,10 @@
-package com.nerdytech.noteit;
+package com.nerdytech.noteit.note;
 
 import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
+import com.nerdytech.noteit.R;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
