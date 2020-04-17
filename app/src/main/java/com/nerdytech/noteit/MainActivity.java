@@ -2,31 +2,49 @@ package com.nerdytech.noteit;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.nerdytech.noteit.model.Adapter;
+import com.nerdytech.noteit.model.Note;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     DrawerLayout drawerLayout;
     ActionBarDrawerToggle toggle;
     NavigationView nav_view;
     RecyclerView noteLists;
-    Adapter adapter;
+
+    FirebaseFirestore fStore;
+    FirestoreRecyclerAdapter<Note,NoteViewHolder> noteAdapter;
+    FirebaseUser user;
+    FirebaseAuth fAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +52,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        fStore=FirebaseFirestore.getInstance();
+
+        Query query = fStore.collection("notes").orderBy("title", Query.Direction.DESCENDING);
+
+        FirestoreRecyclerOptions<Note> allNotes = new FirestoreRecyclerOptions.Builder<Note>()
+                .setQuery(query,Note.class)
+                .build();
+
+        noteAdapter=new FirestoreRecyclerAdapter<Note, NoteViewHolder>(allNotes) {
+            @Override
+            protected void onBindViewHolder(@NonNull NoteViewHolder holder, final int position, @NonNull final Note model) {
+                holder.noteTitle.setText(model.getTitle());
+                holder.noteContent.setText(model.getContent());
+                final int code = getRandomColor();
+                holder.mCardView.setCardBackgroundColor(holder.view.getResources().getColor(code,null));
+
+                holder.view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent i = new Intent(v.getContext(), NoteDetails.class);
+                        i.putExtra("title",model.getTitle());
+                        i.putExtra("content",model.getContent());
+                        i.putExtra("code",code);
+                        v.getContext().startActivity(i);
+                    }
+                });
+            }
+
+            @NonNull
+            @Override
+            public NoteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.note_view_layout,parent,false);
+                return new NoteViewHolder(view);
+            }
+        };
+
+
 
         noteLists = findViewById(R.id.noteList);
 
@@ -46,21 +101,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.setDrawerIndicatorEnabled(true);
         toggle.syncState();
 
-        List<String> titles = new ArrayList<>();
-        List<String> content = new ArrayList<>();
 
-        titles.add("First Note Title.");
-        content.add("First Note Content sample.");
-
-        titles.add("Second Note Title.");
-        content.add("second Note Content sample.second Note Content sample.second Note Content sample.second Note Content sample.");
-
-        titles.add("Third Note Title.");
-        content.add("Third Note Content sample.");
-
-        adapter = new Adapter(titles,content);
         noteLists.setLayoutManager(new StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL));
-        noteLists.setAdapter(adapter);
+        noteLists.setAdapter(noteAdapter);
+
+        FloatingActionButton fab = findViewById(R.id.addNoteFloat);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,AddNote.class));
+            }
+        });
 
     }
 
@@ -89,5 +140,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(this, "Settings Menu is Clicked.", Toast.LENGTH_SHORT).show();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public class NoteViewHolder extends RecyclerView.ViewHolder{
+        TextView noteTitle,noteContent;
+        View view;
+        CardView mCardView;
+
+        public NoteViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            noteTitle = itemView.findViewById(R.id.titles);
+            noteContent = itemView.findViewById(R.id.content);
+            mCardView = itemView.findViewById(R.id.noteCard);
+            view = itemView;
+        }
+    }
+
+    private int getRandomColor() {
+        List<Integer> colorCode=new ArrayList<>();
+        colorCode.add(R.color.blue);
+        colorCode.add(R.color.yellow);
+        colorCode.add(R.color.skyblue);
+        colorCode.add(R.color.lightPurple);
+        colorCode.add(R.color.lightGreen);
+        colorCode.add(R.color.gray);
+        colorCode.add(R.color.pink);
+        colorCode.add(R.color.red);
+        colorCode.add(R.color.greenlight);
+        colorCode.add(R.color.notgreen);
+
+        Random randomColor = new Random();
+        int number = randomColor.nextInt(colorCode.size());
+        return colorCode.get(number);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        noteAdapter.startListening();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (noteAdapter != null) {
+            noteAdapter.stopListening();
+        }
     }
 }

@@ -38,7 +38,7 @@ public class AddNote extends AppCompatActivity {
         setContentView(R.layout.activity_add_note);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         fStore = FirebaseFirestore.getInstance();
         noteContent = findViewById(R.id.addNoteContent);
@@ -87,11 +87,19 @@ public class AddNote extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater=getMenuInflater();
+        inflater.inflate(R.menu.close_menu,menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if(item.getItemId() == android.R.id.home){
+        if(item.getItemId() == R.id.close){
+            Toast.makeText(this,"Note not Saved.", Toast.LENGTH_SHORT).show();
             onBackPressed();
+
         }
         return super.onOptionsItemSelected(item);
     }
