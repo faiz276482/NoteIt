@@ -12,6 +12,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.nerdytech.noteit.auth.LoginActivity;
 
 public class Splash extends AppCompatActivity {
     FirebaseAuth fAuth;
@@ -31,24 +32,13 @@ public class Splash extends AppCompatActivity {
 
                 // check if user is logged in
                 if(fAuth.getCurrentUser() != null){
-                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                    startActivity(new Intent(getApplicationContext(),MainActivity.class)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     finish();
                 }else {
-                    // create new anonymous account
-                    fAuth.signInAnonymously().addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                        @Override
-                        public void onSuccess(AuthResult authResult) {
-                            Toast.makeText(Splash.this, "Logged in With Temporary Account.", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(getApplicationContext(),MainActivity.class));
-                            finish();
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(Splash.this, "Error ! " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                    });
+                    startActivity(new Intent(getApplicationContext(), LoginActivity.class)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP).putExtra("splash",1));
+                    finish();
                 }
 
 

@@ -41,7 +41,7 @@
         android:layout_marginStart="32dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="32dp"
-        android:background="#004D40"
+        android:background="@color/colorPrimary"
         android:text="Login"
         android:textColor="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
@@ -69,6 +69,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/forgotPasword" />
 
+    <TextView
+        android:id="@+id/anonymous"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="143dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="143dp"
+        android:textStyle="italic"
+        android:text="Login Anonymously"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar3"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/createAccount" />
+
     <ProgressBar
         android:id="@+id/progressBar3"
         style="?android:attr/progressBarStyle"
@@ -78,6 +92,6 @@
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/createAccount" />
+        app:layout_constraintTop_toBottomOf="@+id/anonymous" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

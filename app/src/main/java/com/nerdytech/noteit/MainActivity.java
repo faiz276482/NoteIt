@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         startActivity(new Intent(getApplicationContext(),RegisterActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
-//                        finish();
+                        finish();
                     }
                 }).setNegativeButton("Logout", new DialogInterface.OnClickListener() {
                     @Override
@@ -257,8 +257,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         user.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
-                                startActivity(new Intent(getApplicationContext(),Splash.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                                startActivity(new Intent(getApplicationContext(),LoginActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
                                 overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+                                finish();
                             }
                         });
                     }
