@@ -43,11 +43,11 @@ public class NoteDetails extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-//                Intent i = new Intent(view.getContext(),EditNote.class);
-//                i.putExtra("title",data.getStringExtra("title"));
-//                i.putExtra("content",data.getStringExtra("content"));
-//                i.putExtra("noteId",data.getStringExtra("noteId"));
-//                startActivity(i);
+                Intent i = new Intent(view.getContext(),EditNote.class);
+                i.putExtra("title",data.getStringExtra("title"));
+                i.putExtra("content",data.getStringExtra("content"));
+                i.putExtra("noteId",data.getStringExtra("noteId"));
+                startActivity(i);
             }
         });
     }
