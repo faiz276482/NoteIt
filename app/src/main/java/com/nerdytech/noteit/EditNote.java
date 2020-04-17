@@ -6,6 +6,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -35,6 +36,7 @@ public class EditNote extends AppCompatActivity {
         setContentView(R.layout.activity_edit_note);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         fStore = fStore.getInstance();
         spinner = findViewById(R.id.progressBar2);
@@ -93,7 +95,14 @@ public class EditNote extends AppCompatActivity {
 
             }
         });
+    }
 
-
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if(item.getItemId() == android.R.id.home){
+            Toast.makeText(this, "Note not Saved!", Toast.LENGTH_SHORT).show();
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
