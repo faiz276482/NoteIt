@@ -25,7 +25,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.nerdytech.noteit.MainActivity;
 import com.nerdytech.noteit.R;
-import com.nerdytech.noteit.Splash;
 
 public class LoginActivity extends AppCompatActivity {
     EditText lEmail,lPassword;
@@ -42,7 +41,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Login to FireNotes");
+        getSupportActionBar().setTitle("Login to NoteIt");
 
         lEmail = findViewById(R.id.email);
         lPassword = findViewById(R.id.lPassword);

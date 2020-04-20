@@ -36,7 +36,7 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-        getSupportActionBar().setTitle("Connect to FireNotes");
+        getSupportActionBar().setTitle("Connect to NoteIt");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         rUserName = findViewById(R.id.userName);

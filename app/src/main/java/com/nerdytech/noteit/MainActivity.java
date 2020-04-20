@@ -2,6 +2,7 @@ package com.nerdytech.noteit;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -219,6 +220,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.logout:
                 checkUser();
                 break;
+            case R.id.shareapp:
+                Intent intent=new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                String shareBody="I have found this amazing Notes taking app.\nYou can isntall it from here: ";
+                String shareSub="https://github.com/faiz276482/noteit";
+                //intent.putExtra(Intent.EXTRA_SUBJECT,shareSub);
+                intent.putExtra(Intent.EXTRA_TEXT,shareBody+shareSub);
+                startActivity(Intent.createChooser(intent,"Share Using"));
+                break;
+
+            case R.id.rating:
+                intent=new Intent(Intent.ACTION_VIEW, Uri.parse("https://bit.ly/34Om7k4"));
+                startActivity(intent);
+                break;
+
 
             default:
                 Toast.makeText(this, "Coming soon.", Toast.LENGTH_SHORT).show();
