@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -62,6 +63,19 @@ public class LoginActivity extends AppCompatActivity {
         if(fromSplash==0) {
             showWarning();
         }
+        forgetPass.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(TextUtils.isEmpty(lEmail.getText().toString()) && !Patterns.EMAIL_ADDRESS.matcher(lEmail.getText().toString()).matches()){
+                    Toast.makeText(LoginActivity.this, "Enter proper email", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    fAuth.sendPasswordResetEmail(lEmail.getText().toString());
+                    Toast.makeText(LoginActivity.this, "Email sent!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         anon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,57 +107,65 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(LoginActivity.this, "Fields Are Required.", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if(!Patterns.EMAIL_ADDRESS.matcher(mEmail).matches()){
+                    Toast.makeText(LoginActivity.this, "Please Enter a valid Email!", Toast.LENGTH_SHORT).show();
+                }
+                if(mPassword.length()<6){
+                    Toast.makeText(LoginActivity.this, "Password should be at least 6 characters", Toast.LENGTH_SHORT).show();
+                }
+                else {
 
-                // delete notes first
+                    // delete notes first
 
-                spinner.setVisibility(View.VISIBLE);
+                    spinner.setVisibility(View.VISIBLE);
 
-                if (fromSplash == 0){
-                    if (fAuth.getCurrentUser().isAnonymous()) {
-                        final FirebaseUser user = fAuth.getCurrentUser();
+                    if (fromSplash == 0){
+                        if (fAuth.getCurrentUser().isAnonymous()) {
+                            final FirebaseUser user = fAuth.getCurrentUser();
 
-                        fStore.collection("notes").document(user.getUid()).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                Toast.makeText(LoginActivity.this, "All Temp Notes are Deleted.", Toast.LENGTH_LONG).show();
-                                // delete Temp user
+                            fStore.collection("notes").document(user.getUid()).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    Toast.makeText(LoginActivity.this, "All Temp Notes are Deleted.", Toast.LENGTH_LONG).show();
+                                    // delete Temp user
 
-                                user.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Toast.makeText(LoginActivity.this, "Temp user Deleted.", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(LoginActivity.this, "Error in Deleting Note.", Toast.LENGTH_SHORT).show();
-                            }
-                        });;
-                        //delete temp uesr data
+                                    user.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Toast.makeText(LoginActivity.this, "Temp user Deleted.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(LoginActivity.this, "Error in Deleting Note.", Toast.LENGTH_SHORT).show();
+                                }
+                            });;
+                            //delete temp uesr data
 
 
 
-                    }
+                        }
+                }
+
+                    fAuth.signInWithEmailAndPassword(mEmail,mPassword).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                        @Override
+                        public void onSuccess(AuthResult authResult) {
+                            Toast.makeText(LoginActivity.this, "Success !", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                            finish();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(LoginActivity.this, "Login Failed. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            spinner.setVisibility(View.GONE);
+                        }
+                    });
+                }
             }
-
-                fAuth.signInWithEmailAndPassword(mEmail,mPassword).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        Toast.makeText(LoginActivity.this, "Success !", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                        finish();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(LoginActivity.this, "Login Failed. " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        spinner.setVisibility(View.GONE);
-                    }
-                });
-            }
-        });
+    });
 
         createAcc.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -2,6 +2,7 @@ package com.nerdytech.noteit.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -65,43 +66,52 @@ public class RegisterActivity extends AppCompatActivity {
                 String uUserPass = rUserPass.getText().toString();
                 String uConfPass = rUserConfPass.getText().toString();
 
-                if(uUserEmail.isEmpty() || uUsername.isEmpty() || uUserPass.isEmpty() || uConfPass.isEmpty()){
+                if (uUserEmail.isEmpty() || uUsername.isEmpty() || uUserPass.isEmpty() || uConfPass.isEmpty()) {
                     Toast.makeText(RegisterActivity.this, "All Fields Are Required.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if(!uUserPass.equals(uConfPass)){
-                    rUserConfPass.setError("Password Do not Match.");
+                if (!Patterns.EMAIL_ADDRESS.matcher(uUserEmail).matches()) {
+                    Toast.makeText(RegisterActivity.this, "Please Enter a valid Email!", Toast.LENGTH_SHORT).show();
+                }
+                if (uUserPass.length() < 6) {
+                    Toast.makeText(RegisterActivity.this, "Password should be at least 6 characters", Toast.LENGTH_SHORT).show();
                 }
 
-                progressBar.setVisibility(View.VISIBLE);
+                if (!uUserPass.equals(uConfPass)) {
+                    rUserConfPass.setError("Password Do not Match.");
+                }
+                else {
 
-                AuthCredential credential = EmailAuthProvider.getCredential(uUserEmail,uUserPass);
-                fAuth.getCurrentUser().linkWithCredential(credential).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        Toast.makeText(RegisterActivity.this, "Notes are Synced.", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(getApplicationContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
 
-                        FirebaseUser usr = fAuth.getCurrentUser();
-                        UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(uUsername)
-                                .build();
-                        usr.updateProfile(request);
+                    progressBar.setVisibility(View.VISIBLE);
 
-                        startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                    AuthCredential credential = EmailAuthProvider.getCredential(uUserEmail, uUserPass);
+                    fAuth.getCurrentUser().linkWithCredential(credential).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                        @Override
+                        public void onSuccess(AuthResult authResult) {
+                            Toast.makeText(RegisterActivity.this, "Notes are Synced.", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+
+                            FirebaseUser usr = fAuth.getCurrentUser();
+                            UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(uUsername)
+                                    .build();
+                            usr.updateProfile(request);
+
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
 //                        overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
-                        finish();
+                            finish();
 
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(RegisterActivity.this, "Failed to Connect. Try Again.", Toast.LENGTH_SHORT).show();
-                        progressBar.setVisibility(View.VISIBLE);
-                    }
-                });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(RegisterActivity.this, "Failed to Connect. Try Again.", Toast.LENGTH_SHORT).show();
+                            progressBar.setVisibility(View.VISIBLE);
+                        }
+                    });
 
+                }
             }
         });
 
