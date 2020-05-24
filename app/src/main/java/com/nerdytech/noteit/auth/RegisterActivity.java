@@ -84,33 +84,60 @@ public class RegisterActivity extends AppCompatActivity {
 
 
                     progressBar.setVisibility(View.VISIBLE);
+                    if (fAuth.getCurrentUser() != null) {
 
-                    AuthCredential credential = EmailAuthProvider.getCredential(uUserEmail, uUserPass);
-                    fAuth.getCurrentUser().linkWithCredential(credential).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                        @Override
-                        public void onSuccess(AuthResult authResult) {
-                            Toast.makeText(RegisterActivity.this, "Notes are Synced.", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                        AuthCredential credential = EmailAuthProvider.getCredential(uUserEmail, uUserPass);
+                        fAuth.getCurrentUser().linkWithCredential(credential).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                            @Override
+                            public void onSuccess(AuthResult authResult) {
+                                Toast.makeText(RegisterActivity.this, "Notes are Synced.", Toast.LENGTH_SHORT).show();
+                                //startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
 
-                            FirebaseUser usr = fAuth.getCurrentUser();
-                            UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(uUsername)
-                                    .build();
-                            usr.updateProfile(request);
+                                FirebaseUser usr = fAuth.getCurrentUser();
+                                UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(uUsername)
+                                        .build();
+                                usr.updateProfile(request);
 
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                                startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
 //                        overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
-                            finish();
+                                finish();
 
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(RegisterActivity.this, "Failed to Connect. Try Again.", Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.VISIBLE);
-                        }
-                    });
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(RegisterActivity.this, "Failed to Connect. Try Again.", Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.VISIBLE);
+                            }
+                        });
 
+                    }
+                    else{
+                        fAuth.createUserWithEmailAndPassword(uUserEmail, uUserPass).addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                            @Override
+                            public void onSuccess(AuthResult authResult) {
+                                Toast.makeText(RegisterActivity.this, "Account created Please login", Toast.LENGTH_SHORT).show();
+                                //startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+
+                                FirebaseUser usr = fAuth.getCurrentUser();
+                                UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(uUsername)
+                                        .build();
+                                usr.updateProfile(request);
+
+                                startActivity(new Intent(getApplicationContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP));
+//                        overridePendingTransition(R.anim.slide_up,R.anim.slide_down);
+                                finish();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(RegisterActivity.this, "Failed to Connect. Try Again.", Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.VISIBLE);
+                            }
+                        });
+                    }
                 }
             }
         });
